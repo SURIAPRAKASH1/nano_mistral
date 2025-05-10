@@ -2,15 +2,16 @@ import torch
 import torch.nn as nn
 
 import importlib
-from typing import Optional
+from typing import Optional, Type
 
-from quantizer import TorchQuanLinear
+from quantizer import TorchQuantLinear
 from lora import LoRaLinear
 from config import MistralConfig
+from mask import swa_mask
 
 
 def multi_linear(
-    config: Optional[MistralConfig]
+    config: Type[MistralConfig]
     ):
   """
   There are three layer:
@@ -35,7 +36,7 @@ class MistralAttention(nn.Module):
 
   """
 
-  def __init__(self, config: Optional[MistralConfig]):
+  def __init__(self, config: Type[MistralConfig]):
     super(MistralAttention, self).__init__()
     
     self.n_embd = config.n_embd
@@ -53,7 +54,6 @@ class MistralAttention(nn.Module):
     self.k_proj = MultiLinear(self.n_embd, self.n_kv_head * self.head_dim, bias = config.bias)
     self.v_proj = MultiLinear(self.n_embd, self.n_kv_head * self.head_dim, bias = config.bias)
     self.o_proj = MultiLinear(self.head_dim * self.n_head, self.n_embd, bias = config.bias)
-
 
     # regularizaiton
     self.attn_dropout = nn.Dropout(config.dropout)
@@ -111,7 +111,7 @@ class MistralAttention(nn.Module):
 class MistralMLP(nn.Module):
   """Fully connected dense layer"""
 
-  def __init__(self, config):
+  def __init__(self, config: Type[MistralConfig]):
     super(MistralMLP, self).__init__() 
 
     MultiLinear = multi_linear(config) 
