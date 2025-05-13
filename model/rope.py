@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 
 from typing import Type, Tuple
-from config import MistralConfig
+from model.config import MistralConfig
 
 # simple sin/cos rotary postional embedding 
 class MistralRoPE(nn.Module):
@@ -22,7 +22,7 @@ class MistralRoPE(nn.Module):
     # compute omega(more like a base angles) (0i= (0, 1, 2, .. n_embd //2))
     half_dim = self.C // 2
     i = torch.arange(half_dim).float()
-    omega = 1.0 / (10000 ** (2 * i / self.C))  # (half_dim,)
+    omega = 1.0 / (config.omega ** (2 * i / self.C))  # (half_dim,)
 
     # compute postional angles 0(pos)
     pos = torch.arange(self.max_block_size).float()    # (max_block_size,)
@@ -38,8 +38,13 @@ class MistralRoPE(nn.Module):
   def forward(self, 
               xq: torch.Tensor, 
               xk: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+    
     _, _, T, C = xq.shape
     assert C % 2 == 0
+    self.sin_cached = self.sin_cached.to(xq.dtype)
+    self.cos_cached = self.cos_cached.to(xq.dtype)
+    assert xq.dtype == self.sin_cached.dtype, f" input tensor has dtype of {xq.dtype}, Rope sin/cos has dtype of {self.sin_cached.dtype}"
+
     half = C // 2
 
     # select sin/cos for current block_size
