@@ -33,7 +33,7 @@ class MistralRoPE(nn.Module):
     cos = torch.cos(angles)
 
     self.register_buffer("sin_cached", sin.to(dtype = torch.get_default_dtype()))  # (max_block_size, half_dim)
-    self.register_buffer("cos_cached", cos.to(dtype = torch.get_default_dtype))  # (max_block_size, half_dim)
+    self.register_buffer("cos_cached", cos.to(dtype = torch.get_default_dtype()))  # (max_block_size, half_dim)
 
   def forward(self, 
               xq: torch.Tensor, 
