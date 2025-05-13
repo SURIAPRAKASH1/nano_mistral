@@ -110,7 +110,7 @@ def get_lr(it):
     return  min_lr + coeff * (lr - min_lr)    # we make sure learning rate shouldn't 0 (but we wanna decrease)
   
 
-model = MistralTransformer(MistralConfig)
+model = MistralTransformer(MistralConfig).to(device)
 
 # AdamW (decoubled weight decay)
 optimizer = optim.AdamW(model.parameters(), lr = lr, weight_decay= weight_decay)
