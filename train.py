@@ -59,10 +59,10 @@ def get_batch(split, device):
 X, Y = get_batch('train', device)
 # How transfomer see tokens and learn from it
 # for single sequence . here i cut the seq for visualization
+print("-----------------------------------HOW TRANSFORMER SEE TOKENS AND LEARN FROM IT---------------------------------")
 for i in range(MistralConfig.block_size // 10):
   t_input = X[0, : i+1].tolist()
   t_pred = Y[0, i].tolist()
-  print("-----------------------------------HOW TRANSFORMER SEE TOKENS AND LEARN FROM IT---------------------------------")
   print(f"Input: {t_input}, Have to predict: {t_pred}")
   print(f"Input: {tokenizer.decode(t_input)}, Have to predict: {tokenizer.decode(t_pred)}")
   print(' ') 
