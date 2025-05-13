@@ -4,7 +4,7 @@ import torch.nn.functional as F
 
 from typing import Type, Optional 
 
-from config import MistralConfig
+from model.config import MistralConfig
 from model.transformer_layers import MistralBlock, MistralRMSNorm
 
 
