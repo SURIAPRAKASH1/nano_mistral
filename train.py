@@ -89,8 +89,8 @@ eval_iters = 200       # When estimating a loss how many batches we should be co
 eval_step = 500        # for evaluating loss once in a while
 lr = 6e-4              # learning rate
 min_lr = 6e-5          
-weight_decay = 1e-3   
-warmup_iters = 400    # will increase lr then start to decay from here 
+weight_decay = 1e-4   
+warmup_iters = 200    # will increase lr then start to decay from here 
 
 @torch.no_grad()
 def estimate_loss(model):
@@ -174,15 +174,16 @@ print("training is complete ....")
 
 # SAMPLING 
 # encode string to get tokens
+print("sampling from model ...)
 prompt = """
-look if you had one shot one oppurtunity 
-to sieze everything you ever wanted one moment 
+look if you had one shot one opportunity 
+to seize everything you ever wanted one moment 
 """
 encoded_tokens =  torch.tensor([tokenizer.encode(prompt)], device= device) # (B, T) 
 
 # sampling from model
 model.eval()
-generated_tokens =  model.generate(encoded_tokens, max_tokens= 100, temprature= 0.7, top_k= 200, top_p= 0.8)
+generated_tokens =  model.generate(encoded_tokens, max_tokens= 100, temprature= 0.7, top_k= 50, top_p= 0.8)
 
 # decode tokens to get string format 
 result = tokenizer.decode(generated_tokens[0].tolist(), skip_special_tokens= True)
