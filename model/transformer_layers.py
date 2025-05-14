@@ -33,7 +33,7 @@ class MistralAttention(nn.Module):
   """
   Mistral leverage GQA and SWQ:
     1. GQA-->(Group Query Attention). where group of query's (in defferent heads) communicate with same key-value
-    2. SWA-->(Sliding Window Attention). tokens only communicate with other tokens that are in certion window
+    2. SWA-->(Sliding Window Attention). tokens only communicate with other tokens that are in certain window
 
   """
 
@@ -63,12 +63,15 @@ class MistralAttention(nn.Module):
     self.attn_dropout = nn.Dropout(config.dropout)
     self.resid_dropout = nn.Dropout(config.dropout)
 
-    # rope
+    # rope. here every layer going to have it's own MistralRoPE. but it's not efficient when we have block_size(seq len/context size)
+    # then sin/cos will be (seq_len, n_embd // 2) . so what we can do is compute sin/cos once in the begging then feed to transfomer along with x
+    # so that way we just forwarding sin/cos to every layer . then we can apply rope to q, k efficiently
     self.apply_rope = MistralRoPE(config)
 
     # effcient implemention of GQA using xformers. xformers requires cuda
     self.xformer = True if importlib.util.find_spec('xformers') and self.device == 'cuda' else False
 
+    # creating mask every layer not efficient ethier. same as robe 
     if not self.xformer:
       self.register_buffer('attn_bias',
                             swa_mask(self.block_size, self.window_size, self.device)
@@ -85,13 +88,13 @@ class MistralAttention(nn.Module):
     # apply rope
     q, k = self.apply_rope(q, k)
 
-    # GQA for group of q from different head attention to same k,v from same head
+    # GQA for group of q from different head attent to same k,v from same head
     # repeat k,v heads to match q head. means just make copy of kv
     k = torch.repeat_interleave(k, self.repeats, dim = 1)                 # (B, n_kv_h * repeats, T, hd)
     v = torch.repeat_interleave(v, self.repeats, dim = 1)                 # (B, n_kv_h * repeats, T, hd)
 
     if self.xformer:
-      # efficient kernal operation. here we changing shape cause xformer need to have (B, T, nh, hd)
+      # efficient kernal operation. have to change shape cause xformers requires (B, T, nh, hd)
       attn = fmha.memory_efficient_attention(
           q.transpose(1, 2),
           k.transpose(1, 2),
@@ -124,7 +127,7 @@ class MistralMLP(nn.Module):
     MultiLinear = multi_linear(config)
     # funny thing about this layer is we usually 4 * n_embd for intermediate dim of mlp but mistral did 3.5 times 😀
     self.up_proj = MultiLinear(config.n_embd, config.hidden_dim, config.bias)
-    self.gate_proj = MultiLinear(config.n_embd, config.hidden_dim, config.bias)  # it's not really gate in mistral-7B cause we don't moe
+    self.gate_proj = MultiLinear(config.n_embd, config.hidden_dim, config.bias)  # it's not really gate in mistral-7B cause 7B don't have moe
     self.down_proj = MultiLinear(config.hidden_dim, config.n_embd, config.bias)
 
     self.act = nn.SiLU()
