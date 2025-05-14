@@ -19,19 +19,25 @@ print("importing tokenizer from hugging_face...")
 is_accesstok_available:bool = None
 token = HfFolder.get_token()
 
+print("importing tokenizer from hugging_face...")
+
+is_accesstok_available:bool = None
+token = HfFolder.get_token()
+
 if not token:
   print('🔐 Hugging face access token not found !. Please login below')
-  notebook_login()
-  is_accesstok_available = bool(HfFolder.get_token()) 
+  tok = input("Paste your Hugging face access token Here: ")
+  login(tok) 
+  is_accesstok_available = bool(HfFolder.get_token())
   if is_accesstok_available:
     print("✅ Token is set ")
   else:
     print("❌ Token not set")
-    return 
 else: 
   print("✅ Hugging face access token already available")
 
 if importlib.util.find_spec('transformers') and is_accesstok_available:
+    from transformers import AutoTokenizer
     tokenizer = AutoTokenizer.from_pretrained("mistralai/Mistral-7B-v0.1")
     vocab_size = tokenizer.vocab_size
     print('vocab_size', vocab_size)
