@@ -5,8 +5,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 
 from collections import defaultdict
 import importlib
-import matplotlib.pyplot as plt
-
+from huggingface_hub import HfFolder
 
 from model.config import MistralConfig
 from model.transformer import MistralTransformer
@@ -16,25 +15,32 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 print('current device -->', device)
 
 # tokenizer
-if importlib.util.find_spec('transformers'):
+print("importing tokenizer from hugging_face...")
+token = HfFolder.get_token()
+if not token:
+  print('🔐 Hugging face acces token not found !. Please login below')
+  notebook_login()
+  print("✅ Token is set ")
+else: 
+  print("✅ Hugging face token already available")
+
+if importlib.util.find_spec('transformers') :
     tokenizer = AutoTokenizer.from_pretrained("mistralai/Mistral-7B-v0.1")
     vocab_size = tokenizer.vocab_size
     print('vocab_size', vocab_size)
 else:
     print('we need mistral tokenizer from transformers lib so install !') 
-    
+
 # lyrics file 
 text = open("All_eminem_songs.txt", 'r').read()
 tokens = tokenizer.encode(text)
 print(f'{len(text)} words get tokenized to {len(tokens)} tokens')
-
 
 # splitting data into train and dev set's
 n = int(len(tokens) * 0.9)
 train_data = tokens[:n]      # 90%
 dev_data = tokens[n:]        # 10%
 print(f"train data {len(train_data)} tokens\ndev data {len(dev_data)} tokens")
-
 
 # randomly get sample of batch of tokens
 def get_batch(split, device):
@@ -55,10 +61,10 @@ def get_batch(split, device):
 
   return x, y
 
-
 X, Y = get_batch('train', device)
 # How transfomer see tokens and learn from it
 # for single sequence . here i cut the seq for visualization
+t = MistralConfig.block_size // 10  if MistralConfig.block_size // 10  <= 6 else 6
 print("-----------------------------------HOW TRANSFORMER SEE TOKENS AND LEARN FROM IT---------------------------------")
 for i in range(MistralConfig.block_size // 10):
   t_input = X[0, : i+1].tolist()
@@ -67,15 +73,13 @@ for i in range(MistralConfig.block_size // 10):
   print(f"Input: {tokenizer.decode(t_input)}, Have to predict: {tokenizer.decode(t_pred)}")
   print(' ') 
 
-
 # Hyper parameters for training
-steps = 5000           # how may steps we want to trian our model
-eval_iters = 200       # when estimating loss how many batches we should be consider
-eval_step = 500        # for printing loss
-lr = 6e-4     
-min_lr = 6e-5
-
-weight_decay = 1e-3
+steps = 5000           # How may steps we want to trian our model
+eval_iters = 200       # When estimating a loss how many batches we should be consider
+eval_step = 500        # for evaluating loss once in a while
+lr = 6e-4              # learning rate
+min_lr = 6e-5          
+weight_decay = 1e-3   
 warmup_iters = 400    # will increase lr then start to decay from here 
 
 @torch.no_grad()
@@ -108,8 +112,8 @@ def get_lr(it):
     assert 0 <= decay_ratio <=1
     coeff = 0.5 * ( 1.0 + math.cos( math.pi * decay_ratio))
     return  min_lr + coeff * (lr - min_lr)    # we make sure learning rate shouldn't 0 (but we wanna decrease)
-  
 
+print("initiating a model ...")
 model = MistralTransformer(MistralConfig).to(device)
 
 # AdamW (decoubled weight decay)
@@ -119,6 +123,7 @@ scaler = torch.amp.GradScaler(device = device)
 # loss stacks
 gb_lossi = defaultdict(list)
 
+print("start training a model ...")
 # Optimization loop
 for step in range(steps):
   # get batch of sample data from training dataset
@@ -156,18 +161,7 @@ for step in range(steps):
 
     print(f"{step}:{steps}, train_loss: {losses['train'].item()}, dev_loss: {losses['dev'].item()} ")
 
-
-# visualizing loss
-plt.plot(gb_lossi['train'])
-plt.plot(gb_lossi['dev']) 
-plt.xlabel(f'per {eval_iters}/Batches')
-plt.ylabel('Loss')
-plt.legend(['train', 'dev'])
-plt.show()
-
-
 # SAMPLING 
-
 # encode string to get tokens
 prompt = """
 look if you had one shot one oppurtunity 
