@@ -5,7 +5,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 
 from collections import defaultdict
 import importlib
-from huggingface_hub import HfFolder
+from huggingface_hub import HfFolder, login
 
 from model.config import MistralConfig
 from model.transformer import MistralTransformer
@@ -16,11 +16,6 @@ print('current device -->', device)
 
 # tokenizer
 print("importing tokenizer from hugging_face...")
-is_accesstok_available:bool = None
-token = HfFolder.get_token()
-
-print("importing tokenizer from hugging_face...")
-
 is_accesstok_available:bool = None
 token = HfFolder.get_token()
 
