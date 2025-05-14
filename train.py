@@ -29,6 +29,7 @@ if not token:
   else:
     print("❌ Token not set")
 else: 
+  is_accesstok_available = True
   print("✅ Hugging face access token already available")
 
 if importlib.util.find_spec('transformers') and is_accesstok_available:
