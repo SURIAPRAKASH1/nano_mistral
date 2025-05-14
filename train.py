@@ -16,26 +16,35 @@ print('current device -->', device)
 
 # tokenizer
 print("importing tokenizer from hugging_face...")
+is_accesstok_available:bool = None
 token = HfFolder.get_token()
-if not token:
-  print('🔐 Hugging face acces token not found !. Please login below')
-  notebook_login()
-  print("✅ Token is set ")
-else: 
-  print("✅ Hugging face token already available")
 
-if importlib.util.find_spec('transformers') :
+if not token:
+  print('🔐 Hugging face access token not found !. Please login below')
+  notebook_login()
+  is_accesstok_available = bool(HfFolder.get_token()) 
+  if is_accesstok_available:
+    print("✅ Token is set ")
+  else:
+    print("❌ Token not set")
+    return 
+else: 
+  print("✅ Hugging face access token already available")
+
+if importlib.util.find_spec('transformers') and is_accesstok_available:
     tokenizer = AutoTokenizer.from_pretrained("mistralai/Mistral-7B-v0.1")
     vocab_size = tokenizer.vocab_size
     print('vocab_size', vocab_size)
 else:
-    print('we need mistral tokenizer from transformers lib so install !') 
+    print('we need mistral tokenizer from transformers lib so install and set hugging face access token !') 
 
+print("Tokenizing the Dataset")
 # lyrics file 
 text = open("All_eminem_songs.txt", 'r').read()
 tokens = tokenizer.encode(text)
 print(f'{len(text)} words get tokenized to {len(tokens)} tokens')
 
+print("Splitting train and dev dataset")
 # splitting data into train and dev set's
 n = int(len(tokens) * 0.9)
 train_data = tokens[:n]      # 90%
@@ -101,11 +110,10 @@ def estimate_loss(model):
 
 import math
 def get_lr(it):
-
   # so we gradually increasing learning rate
   if it < warmup_iters:
     return  lr * (it + 1) / (warmup_iters + 1)
-
+    
   # starting to decaying the learning rate using cosine
   else:
     decay_ratio = (it - warmup_iters)/ (steps - warmup_iters)
@@ -160,6 +168,8 @@ for step in range(steps):
     gb_lossi['dev'].append(losses['dev'].item())
 
     print(f"{step}:{steps}, train_loss: {losses['train'].item()}, dev_loss: {losses['dev'].item()} ")
+
+print("training is complete ....")
 
 # SAMPLING 
 # encode string to get tokens
