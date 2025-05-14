@@ -174,7 +174,7 @@ print("training is complete ....")
 
 # SAMPLING 
 # encode string to get tokens
-print("sampling from model ...)
+print("sampling from model ...")
 prompt = """
 look if you had one shot one opportunity 
 to seize everything you ever wanted one moment 
