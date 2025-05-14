@@ -6,7 +6,7 @@
   **SWQ**: Sliding Window Attention. it's prettie cool that the way they used SWA. what would we do in standard casual attention, each token atten to every token that is previous to it's position. but what SWA does each token only atten to tokens that are within window range. now what you are thinking if we do that transformer can't understand it's context but here the twist. if we stack layer togather eventhough at each layer we do SWA but passing context to every layer each token will attention to window * layers tokens that already communicate with it's previous tokens.
 
 # *Install*
-      pip install torch transformers xformers hugginface_hub 
+      pip install torch transformers xformers huggingface_hub 
  
 # *train*
   just clone the repo and run. 
