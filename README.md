@@ -12,7 +12,7 @@
   just clone the repo and run. 
   
       python train.py
-  it will take care everything . As a default it will initiate model with 15M parameters and it will run about 5m then automatically you get samples from your trained model. if you got some issues during training or some bug , you can peek into code and figure out youself cause that's what i do 😀. 
+  it will take care everything . As a default it will initiate model with 15M parameters and it will run about 5m on GPU then automatically you get samples from your trained model. if you got some issues during training or some bug , you can peek into code and figure out youself cause that's what i do 😀. 
 # *What i got*
   just trained the model with default config about 5m. don't mind the words after all model trained on Eminem's lyrics 🤘
   
