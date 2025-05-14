@@ -76,7 +76,7 @@ X, Y = get_batch('train', device)
 # for single sequence . here i cut the seq for visualization
 t = MistralConfig.block_size // 10  if MistralConfig.block_size // 10  <= 6 else 6
 print("-----------------------------------HOW TRANSFORMER SEE TOKENS AND LEARN FROM IT---------------------------------")
-for i in range(MistralConfig.block_size // 10):
+for i in range(t):
   t_input = X[0, : i+1].tolist()
   t_pred = Y[0, i].tolist()
   print(f"Input: {t_input}, Have to predict: {t_pred}")
